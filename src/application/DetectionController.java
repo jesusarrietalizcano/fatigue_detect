@@ -4,6 +4,7 @@ import infrastructure.CameraService;
 import infrastructure.utils.ImageUtils;
 import presentation.CameraView;
 import org.opencv.core.Mat;
+import org.opencv.core.Core;
 
 public class DetectionController {
 
@@ -26,6 +27,7 @@ public class DetectionController {
             Mat frame = cameraService.getFrame();
 
             if (!frame.empty()) {
+                Core.flip(frame, frame, 1);
                 var image = ImageUtils.matToBufferedImage(frame);
                 view.updateImage(image);
             }
