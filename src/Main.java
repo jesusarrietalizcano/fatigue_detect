@@ -1,11 +1,12 @@
 import application.DetectionController;
 import infrastructure.CameraService;
 import presentation.CameraView;
+import org.opencv.core.Core;
 
 public class Main {
     public static void main(String[] args) {
 
-        System.load("C:\\Users\\Lenovo\\Downloads\\opencv\\build\\java\\x64\\opencv_java4120.dll");
+        System.load(System.getProperty("user.dir") + "\\libs\\opencv_java4120.dll");
 
 
         CameraService cameraService = new CameraService();

@@ -9,7 +9,7 @@ public class CameraView extends JFrame {
     private JLabel imageLabel;
 
     public CameraView() {
-        setTitle("Detector de Fatiga");
+        setTitle("Detector de fatiga");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
