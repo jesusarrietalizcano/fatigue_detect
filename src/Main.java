@@ -11,7 +11,8 @@ public class Main {
         System.load(System.getProperty("user.dir") + "\\libs\\opencv_java4120.dll");
 
         // Ruta absoluta donde están los archivos XML
-        String cascadesPath = "C:\\Users\\Lenovo\\Desktop\\proyect\\src\\main\\resources\\cascades\\";
+        String cascadesPath = Main.class.getClassLoader().getResource("cascades/").getPath().replaceFirst("^/", "");
+        System.out.println("Ruta cascades: " + cascadesPath);
 
         // Crear cada componente
         CameraService cameraService = new CameraService();
