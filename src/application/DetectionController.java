@@ -14,6 +14,10 @@ public class DetectionController {
     private FaceDetector faceDetector;
     private EyeDetector eyeDetector;
 
+    // Contador de frames consecutivos sin ojos detectados
+    private int framesSinOjos = 0;
+    private static final int UMBRAL_FRAMES = 3;
+
     public DetectionController(CameraService cameraService, CameraView view, FaceDetector faceDetector, EyeDetector eyeDetector) {
         this.cameraService = cameraService;
         this.view = view;
@@ -67,6 +71,17 @@ public class DetectionController {
                   ojosDetectados = true;
               }
         }
-        return ojosDetectados;
+        // Si detectó ojos, resetear contador
+        if (ojosDetectados) {
+            framesSinOjos = 0;
+            return true;
+        }
+
+// Si no detectó ojos, incrementar contador
+        framesSinOjos++;
+
+// Solo reportar false si llevan varios frames cerrados
+// Un parpadeo normal no supera el umbral
+        return framesSinOjos >= UMBRAL_FRAMES;
     }
 }
