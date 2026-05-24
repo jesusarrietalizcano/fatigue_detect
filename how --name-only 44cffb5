@@ -1,9 +1,0 @@
-[33mcommit 44cffb59926b783de35591ff874e1093fd9da5b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop_Jesus[m[33m, [m[1;31morigin/develop[m[33m)[m
-Author: jesusarrietalizcano <jesusarrieta7k@gmail.com>
-Date:   Mon May 4 10:10:14 2026 -0500
-
-    arreglo del maven
-
-libs/opencv_java4120.dll
-pom.xml
-src/Main.java
