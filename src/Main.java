@@ -12,7 +12,14 @@ public class Main {
         System.load(System.getProperty("user.dir") + "\\libs\\opencv_java4120.dll");
 
         // Ruta absoluta donde están los archivos XML
-        String cascadesPath = Main.class.getClassLoader().getResource("cascades/").getPath().replaceFirst("^/", "");
+        String cascadesPath;
+        try {
+            cascadesPath = new java.io.File(
+                    Main.class.getClassLoader().getResource("cascades/").toURI()
+            ).getAbsolutePath() + "\\";
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo obtener la ruta de cascades", e);
+        }
         System.out.println("Ruta cascades: " + cascadesPath);
 
         // Crear cada componente
