@@ -1,5 +1,7 @@
 package application;
 
+import domain.DrowsinessLogic;
+import domain.EyeState;
 import infrastructure.CameraService;
 import infrastructure.FaceDetector;
 import infrastructure.EyeDetector;
@@ -13,15 +15,18 @@ public class DetectionController {
     private CameraView view;
     private FaceDetector faceDetector;
     private EyeDetector eyeDetector;
+    private DrowsinessLogic drowsinessLogic;
 
     private int framesSinOjos = 0;
     private static final int UMBRAL_FRAMES = 3;
 
-    public DetectionController(CameraService cameraService, CameraView view, FaceDetector faceDetector, EyeDetector eyeDetector) {
-        this.cameraService = cameraService;
-        this.view = view;
-        this.faceDetector = faceDetector;
-        this.eyeDetector = eyeDetector;
+    public DetectionController(CameraService cameraService, CameraView view,
+                               FaceDetector faceDetector, EyeDetector eyeDetector) {
+        this.cameraService   = cameraService;
+        this.view            = view;
+        this.faceDetector    = faceDetector;
+        this.eyeDetector     = eyeDetector;
+        this.drowsinessLogic = new DrowsinessLogic();
     }
 
     public void start() {
@@ -29,6 +34,7 @@ public class DetectionController {
             System.out.println("Error con la cámara");
             return;
         }
+
         while (true) {
             Mat frame = cameraService.getFrame();
 
@@ -36,7 +42,15 @@ public class DetectionController {
                 Core.flip(frame, frame, 1);
 
                 boolean ojosDetectados = procesarFrame(frame);
-                System.out.println("ojosDetectados = " + ojosDetectados);
+
+                EyeState estado = drowsinessLogic.evaluate(ojosDetectados);
+                System.out.println("Estado: " + estado
+                        + " | Cerrados: " + drowsinessLogic.getClosedDurationMs() + "ms");
+
+                if (drowsinessLogic.shouldActivateAlarm()) {
+                    System.out.println("ALARMA ACTIVADA");
+                    // Persona 3 conectará aquí: alarmService.play();
+                }
 
                 var image = ImageUtils.matToBufferedImage(frame);
                 view.updateImage(image);
@@ -49,7 +63,6 @@ public class DetectionController {
 
         System.out.println("Rostros detectados: " + rostros.length);
 
-        // Si no hay cara, false inmediato
         if (rostros.length == 0) {
             framesSinOjos = 0;
             return false;
@@ -68,14 +81,13 @@ public class DetectionController {
             for (Rect ojo : ojos) {
                 Rect ojoEnFrame = new Rect(
                         rostro.x + ojo.x,
-                        rostro.y + ojo.y + (int)(rostro.height * 0.25), // sumar el offset del inicio
+                        rostro.y + ojo.y + (int)(rostro.height * 0.25),
                         ojo.width,
                         ojo.height
                 );
                 Imgproc.rectangle(frame, ojoEnFrame, new Scalar(0, 255, 0), 2);
             }
 
-            // Solo true si detectó los 2 ojos
             if (ojos.length >= 2) {
                 ojosDetectados = true;
             }
