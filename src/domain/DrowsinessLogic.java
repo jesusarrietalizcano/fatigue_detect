@@ -5,14 +5,14 @@ public class DrowsinessLogic {
     private static final long ALARM_THRESHOLD_MS  = 3000;
 
     private long eyesClosedSince = -1;
-    private EyeState currentState = EyeState.AWAKE;
+    private EyeState currentState = EyeState.DESPIERTO;
 
     public EyeState evaluate(boolean eyesDetected) {
         long now = System.currentTimeMillis();
 
         if (eyesDetected) {
             eyesClosedSince = -1;
-            currentState = EyeState.AWAKE;
+            currentState = EyeState.DESPIERTO;
         } else {
             if (eyesClosedSince == -1) {
                 eyesClosedSince = now;
@@ -21,9 +21,9 @@ public class DrowsinessLogic {
             long closed = now - eyesClosedSince;
 
             if (closed >= ALARM_THRESHOLD_MS) {
-                currentState = EyeState.ALARM_ACTIVE;
+                currentState = EyeState.ALARMA_ACTIVADA;
             } else if (closed >= DROWSY_THRESHOLD_MS) {
-                currentState = EyeState.DROWSY;
+                currentState = EyeState.SOMNOLIENTO;
             }
         }
 
@@ -31,7 +31,7 @@ public class DrowsinessLogic {
     }
 
     public boolean shouldActivateAlarm() {
-        return currentState == EyeState.ALARM_ACTIVE;
+        return currentState == EyeState.ALARMA_ACTIVADA;
     }
 
     public EyeState getCurrentState() {
@@ -45,7 +45,7 @@ public class DrowsinessLogic {
 
     public void reset() {
         eyesClosedSince = -1;
-        currentState = EyeState.AWAKE;
+        currentState = EyeState.DESPIERTO;
     }
 }
 
