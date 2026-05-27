@@ -3,6 +3,7 @@ package presentation;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import domain.EyeState;
 
 public class CameraView extends JFrame {
 
@@ -25,9 +26,8 @@ public class CameraView extends JFrame {
         setVisible(true);
     }
 
-    public void updateImage(BufferedImage image) {
+    public void updateImage(BufferedImage image, EyeState estado, long tiempoMs) {
         if (image != null) {
-            // Escalar la imagen al tamaño actual de la ventana
             int w = getWidth();
             int h = getHeight();
             Image scaled = image.getScaledInstance(w, h, Image.SCALE_FAST);

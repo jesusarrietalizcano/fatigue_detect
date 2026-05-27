@@ -21,12 +21,13 @@ public class DetectionController {
     private static final int UMBRAL_FRAMES = 3;
 
     public DetectionController(CameraService cameraService, CameraView view,
-                               FaceDetector faceDetector, EyeDetector eyeDetector) {
+                               FaceDetector faceDetector, EyeDetector eyeDetector,
+                               DrowsinessLogic drowsinessLogic) {
         this.cameraService   = cameraService;
         this.view            = view;
         this.faceDetector    = faceDetector;
         this.eyeDetector     = eyeDetector;
-        this.drowsinessLogic = new DrowsinessLogic();
+        this.drowsinessLogic = drowsinessLogic;
     }
 
     public void start() {
@@ -44,24 +45,21 @@ public class DetectionController {
                 boolean ojosDetectados = procesarFrame(frame);
 
                 EyeState estado = drowsinessLogic.evaluate(ojosDetectados);
-                System.out.println("Estado: " + estado
-                        + " | Cerrados: " + drowsinessLogic.getClosedDurationMs() + "ms");
+                System.out.println("Estado: " + estado + " | Cerrados: " + drowsinessLogic.getClosedDurationMs() + "ms");
 
                 if (drowsinessLogic.shouldActivateAlarm()) {
                     System.out.println("ALARMA ACTIVADA");
-                    // Persona 3 conectará aquí: alarmService.play();
+
                 }
 
                 var image = ImageUtils.matToBufferedImage(frame);
-                view.updateImage(image);
+                view.updateImage(image, estado, drowsinessLogic.getClosedDurationMs());
             }
         }
     }
 
     private boolean procesarFrame(Mat frame) {
         Rect[] rostros = faceDetector.detect(frame);
-
-        System.out.println("Rostros detectados: " + rostros.length);
 
         if (rostros.length == 0) {
             framesSinOjos = 0;
@@ -75,8 +73,6 @@ public class DetectionController {
 
             Mat regionRostro = new Mat(frame, rostro);
             Rect[] ojos = eyeDetector.detect(regionRostro);
-
-            System.out.println("Ojos detectados: " + ojos.length);
 
             for (Rect ojo : ojos) {
                 Rect ojoEnFrame = new Rect(
