@@ -4,6 +4,7 @@ import infrastructure.FaceDetector;
 import infrastructure.EyeDetector;
 import presentation.CameraView;
 import domain.DrowsinessLogic;
+import infrastructure.alarm.AlarmService;
 
 
 public class Main {
@@ -29,9 +30,10 @@ public class Main {
         FaceDetector faceDetector = new FaceDetector(cascadesPath + "haarcascade_frontalface_default.xml");
         EyeDetector eyeDetector = new EyeDetector(cascadesPath + "haarcascade_eye_tree_eyeglasses.xml");
         DrowsinessLogic drowsinessLogic = new DrowsinessLogic();
+        AlarmService alarmService = new AlarmService();
 
 // Iniciar el controlador con todos los componentes
-        DetectionController controller = new DetectionController(cameraService, view, faceDetector, eyeDetector, drowsinessLogic);
+        DetectionController controller = new DetectionController(cameraService, view, faceDetector, eyeDetector, drowsinessLogic, alarmService);
         controller.start();
     }
 }

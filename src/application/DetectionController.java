@@ -6,28 +6,32 @@ import infrastructure.CameraService;
 import infrastructure.FaceDetector;
 import infrastructure.EyeDetector;
 import infrastructure.utils.ImageUtils;
-import presentation.CameraView;
+import presentation.DetectorView;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+import infrastructure.alarm.AlarmService;
 
 public class DetectionController {
     private CameraService cameraService;
-    private CameraView view;
+    private DetectorView view;
     private FaceDetector faceDetector;
     private EyeDetector eyeDetector;
     private DrowsinessLogic drowsinessLogic;
-
+    private volatile boolean running = true;
+    private volatile boolean paused = false;
     private int framesSinOjos = 0;
     private static final int UMBRAL_FRAMES = 3;
+    private AlarmService alarmService;
 
-    public DetectionController(CameraService cameraService, CameraView view,
+    public DetectionController(CameraService cameraService, DetectorView view,
                                FaceDetector faceDetector, EyeDetector eyeDetector,
-                               DrowsinessLogic drowsinessLogic) {
+                               DrowsinessLogic drowsinessLogic, AlarmService alarmService) {
         this.cameraService   = cameraService;
         this.view            = view;
         this.faceDetector    = faceDetector;
         this.eyeDetector     = eyeDetector;
         this.drowsinessLogic = drowsinessLogic;
+        this.alarmService    = alarmService;
     }
 
     public void start() {
@@ -36,7 +40,11 @@ public class DetectionController {
             return;
         }
 
-        while (true) {
+        while (running) {
+            if (paused) {
+                try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                continue;
+            }
             Mat frame = cameraService.getFrame();
 
             if (!frame.empty()) {
@@ -45,11 +53,12 @@ public class DetectionController {
                 boolean ojosDetectados = procesarFrame(frame);
 
                 EyeState estado = drowsinessLogic.evaluate(ojosDetectados);
-                System.out.println("Estado: " + estado + " | Cerrados: " + drowsinessLogic.getClosedDurationMs() + "ms");
+
 
                 if (drowsinessLogic.shouldActivateAlarm()) {
-                    System.out.println("ALARMA ACTIVADA");
-
+                    alarmService.activar();
+                } else {
+                    alarmService.detener();
                 }
 
                 var image = ImageUtils.matToBufferedImage(frame);
@@ -61,8 +70,10 @@ public class DetectionController {
     private boolean procesarFrame(Mat frame) {
         Rect[] rostros = faceDetector.detect(frame);
 
+        // Sin rostro → resetear todo inmediatamente
         if (rostros.length == 0) {
             framesSinOjos = 0;
+            drowsinessLogic.evaluateSinRostro();
             return false;
         }
 
@@ -89,12 +100,23 @@ public class DetectionController {
             }
         }
 
+        // Hay rostro y ojos detectados → despierto
         if (ojosDetectados) {
             framesSinOjos = 0;
             return true;
         }
 
+        // Hay rostro pero sin ojos → contar frames
+        // No esperar umbral, pasar false inmediatamente
+        // El umbral solo servía para parpadeos pero causaba el bug
         framesSinOjos++;
-        return framesSinOjos >= UMBRAL_FRAMES;
+        return false;
+    }
+    public void detener() {
+        running = false;
+        alarmService.detener();
+    }
+    public void setPaused(boolean paused) {
+        this.paused = paused;
     }
 }

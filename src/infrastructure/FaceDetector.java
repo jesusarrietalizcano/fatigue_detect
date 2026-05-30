@@ -13,17 +13,23 @@ public class FaceDetector {
     }
 
     public Rect[] detect(Mat frame) {
+        if (frame.empty() || frame.rows() <= 0 || frame.cols() <= 0) {
+            return new Rect[0];
+        }
+
         Mat gris = new Mat();
-        Imgproc.cvtColor(frame, gris, Imgproc.COLOR_BGR2GRAY);
+        try {
+            Imgproc.cvtColor(frame, gris, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.equalizeHist(gris, gris);
 
-        Imgproc.equalizeHist(gris, gris);
-
-        MatOfRect rostros = new MatOfRect();
-
-        // Solo detecta caras de mínimo 100x100 píxeles
-        // Evita que objetos del fondo se confundan con caras
-        faceClassifier.detectMultiScale(gris, rostros, 1.1, 5, 0, new Size(100, 100), new Size());
-
-        return rostros.toArray();
+            MatOfRect rostros = new MatOfRect();
+            faceClassifier.detectMultiScale(gris, rostros, 1.1, 5, 0, new Size(100, 100), new Size());
+            return rostros.toArray();
+        } catch (Exception e) {
+            return new Rect[0];
+        } finally {
+            // Liberar memoria siempre, aunque haya error
+            gris.release();
+        }
     }
 }

@@ -29,6 +29,13 @@ public class DrowsinessLogic {
 
         return currentState;
     }
+    public EyeState evaluateSinRostro() {
+        // Si no hay rostro simplemente reseteamos todo
+        // No debe contar como ojos cerrados
+        eyesClosedSince = -1;
+        currentState = EyeState.DESPIERTO;
+        return currentState;
+    }
 
     public boolean shouldActivateAlarm() {
         return currentState == EyeState.ALARMA_ACTIVADA;
